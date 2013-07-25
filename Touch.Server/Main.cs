@@ -78,17 +78,17 @@ class SimpleListener {
 
 	public bool Processing (TcpClient client)
 	{
+		if (!Directory.Exists (LogPath))
+			Directory.CreateDirectory (LogPath);
 		string logfile = Path.Combine (LogPath, LogFile ?? DateTime.UtcNow.Ticks.ToString () + ".log");
 		string remote = client.Client.RemoteEndPoint.ToString ();
 		Console.WriteLine ("Connection from {0} saving logs to {1}", remote, logfile);
 
-		using (FileStream fs = File.OpenWrite (logfile)) {
+		using (FileStream fs = File.Open (logfile, FileMode.Create, FileAccess.ReadWrite)) {
 			// a few extra bits of data only available from this side
 			string header = String.Format ("[Local Date/Time:\t{1}]{0}[Remote Address:\t{2}]{0}", 
-				Environment.NewLine, DateTime.Now, remote);
-			byte[] array = Encoding.UTF8.GetBytes (header);
-			fs.Write (array, 0, array.Length);
-			fs.Flush ();
+			                               Environment.NewLine, DateTime.Now, remote);
+			Console.WriteLine (header);
 			// now simply copy what we receive
 			int i;
 			int total = 0;
@@ -134,7 +134,7 @@ class SimpleListener {
 			{ "h|?|help", "Display help", v => help = true },
 			{ "ip", "IP address to listen (default: Any)", v => address = v },
 			{ "port", "TCP port to listen (default: 16384)", v => port = v },
-			{ "logpath", "Path to save the log files (default: .)", v => log_path = v },
+			{ "logpath=", "Path to save the log files (default: .)", v => log_path = v },
 			{ "logfile=", "Filename to save the log to (default: automatically generated)", v => log_file = v },
 			{ "launchdev=", "Run the specified app on a device (specify using bundle identifier)", v => launchdev = v },
 			{ "launchsim=", "Run the specified app on the simulator (specify using path to *.app directory)", v => launchsim = v },
@@ -152,7 +152,9 @@ class SimpleListener {
 			IPAddress ip;
 			if (String.IsNullOrEmpty (address) || !IPAddress.TryParse (address, out ip))
 				listener.Address = IPAddress.Any;
-			
+			else
+				listener.Address = ip;
+
 			ushort p;
 			if (UInt16.TryParse (port, out p))
 				listener.Port = p;
@@ -245,9 +247,10 @@ class SimpleListener {
 		} catch (OptionException oe) {
 			Console.WriteLine ("{0} for options '{1}'", oe.Message, oe.OptionName);
 			return 1;
-		} catch (Exception ex) {
-			Console.WriteLine (ex);
-			return 1;
-		}
+		} 
+		//		catch (Exception ex) {
+		//			Console.WriteLine (ex);
+		//			return 1;
+		//		}
 	}   
 }
