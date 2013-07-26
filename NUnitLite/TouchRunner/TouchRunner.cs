@@ -307,12 +307,15 @@ namespace MonoTouch.NUnit.UI {
 			if (Writer == null)
 				return;
 
-			NUnit2XmlOutputWriter outputWriter = new NUnit2XmlOutputWriter ();
+			var outputWriter = new NUnit2XmlOutputWriter ();
 			var tempFilePath = Path.Combine (Environment.GetFolderPath (Environment.SpecialFolder.MyDocuments), "output.xml");
 			outputWriter.WriteResultFile (TestResult,tempFilePath);
 			var data = File.ReadAllBytes (tempFilePath);
 
-			(Writer as TcpTextWriter).Write (data, 0, data.Length);
+			var tcpTextWriter = Writer as TcpTextWriter;
+			if (tcpTextWriter != null) {
+				tcpTextWriter.Write (data, 0, data.Length);
+			}
 			Writer.Close ();
 			Writer = null;
 		}
