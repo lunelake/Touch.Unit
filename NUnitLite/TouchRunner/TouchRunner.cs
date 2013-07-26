@@ -304,6 +304,9 @@ namespace MonoTouch.NUnit.UI {
 		
 		public void CloseWriter ()
 		{
+			if (Writer == null)
+				return;
+
 			NUnit2XmlOutputWriter outputWriter = new NUnit2XmlOutputWriter ();
 			var tempFilePath = Path.Combine (Environment.GetFolderPath (Environment.SpecialFolder.MyDocuments), "output.xml");
 			outputWriter.WriteResultFile (TestResult,tempFilePath);
